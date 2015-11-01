@@ -8,98 +8,102 @@
 		
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
 
-		<noscript>Sorry, your browser does not support JavaScript!</noscript>
+		<noscript><b>Sorry, your browser does not support JavaScript or you have it disabled, please enable it or upgrade your browser!</b></noscript>
 
-		<script type="text/javascript"> 
+		<script type="text/javascript">
 		window.onload=function(){
-		var projects = ["ATLAS", "SETI", "COSMO"];
-		var last_selected_item = "";
-		var selected_item;
-		var projectsOutput = [];
-		var whitelistNum = 36;
-		var nnMultiplier = 115000;
+			document.getElementById("divMain").style.display = "block";
+			var projects = ["ATLAS", "SETI", "COSMO"];
+			var last_selected_item = "";
+			var selected_item;
+			var projectsOutput = [];
+			var whitelistNum = 36;
+			var nnMultiplier = 115000;
 
-		// Just for testing
-		var projectRAC = 11166.67;
+			// Just for testing
+			var projectRAC = 11166.67;
 
-		$('#calc').keyup(function (e) {
-			var userRAC = document.getElementById(selected_item + 'input2').value;
-			var userMag = (((parseFloat(userRAC) / (parseFloat(projectRAC) + 0.01)) / (parseFloat(whitelistNum) + 0.01)) * parseFloat(nnMultiplier)).toFixed(2);
-			document.getElementById(selected_item + 'output').innerHTML = selected_item + ' Mag: ' + userMag;
+			$('#calc').keyup(function (e) {
+				var userRAC = document.getElementById(selected_item + 'input2').value;
+				var userMag = (((parseFloat(userRAC) / (parseFloat(projectRAC) + 0.01)) / (parseFloat(whitelistNum) + 0.01)) * parseFloat(nnMultiplier)).toFixed(2);
+				document.getElementById(selected_item + 'output').innerHTML = selected_item + ' Mag: ' + userMag;
 
-			var index = projectsOutput.indexOf(selected_item);
-			if (index == -1) {
-				projectsOutput.push(selected_item, userMag);
-			} else {
-				projectsOutput[index + 1] = userMag;
-			}
-
-			var output = '';
-			var total_mag = 0;
-			var i = 0;
-			while (projectsOutput.length > i) {
-				output += projectsOutput[i] + ' = ' + projectsOutput[i + 1] + '<br>';
-				total_mag += parseFloat(projectsOutput[i + 1]);
-				i = i + 2;
-			}
-
-			output = output + '<br><br>Total Mag: ' + total_mag.toFixed(2); // I have no idea why we need to round here..
-			
-			var grc = '<br>Daily GRC Earnings: ' + (total_mag.toFixed(2) * 0.35).toFixed(8)
-
-			document.getElementById('projectOutput').innerHTML = output + grc;
-		});
-
-		$('#choice').change(function () {
-			selected_item = $(this).val();
-
-			var i = 0;
-			for (; projects[i];) {
-				if (selected_item == projects[i]) {
-					document.getElementById(projects[i] + 'input').style.display = 'block';
-				} else if (last_selected_item == projects[i]) {
-					document.getElementById(last_selected_item + 'input').style.display = 'none';
+				var index = projectsOutput.indexOf(selected_item);
+				if (index == -1) {
+					projectsOutput.push(selected_item, userMag);
+				} else {
+					projectsOutput[index + 1] = userMag;
 				}
-				i++;
-			}
 
-			last_selected_item = selected_item;
-		});
-		}
+				var output = '';
+				var total_mag = 0;
+				var i = 0;
+				while (projectsOutput.length > i) {
+					output += projectsOutput[i] + ' = ' + projectsOutput[i + 1] + '<br>';
+					total_mag += parseFloat(projectsOutput[i + 1]);
+					i = i + 2;
+				}
+
+				output = output + '<br><br>Total Mag: ' + total_mag.toFixed(2); // I have no idea why we need to round here..
+				
+				var grc = '<br>Daily GRC Earnings: ' + (total_mag.toFixed(2) * 0.35).toFixed(8)
+
+				document.getElementById('projectOutput').innerHTML = output + grc;
+			});
+
+			$('#choice').change(function () {
+				selected_item = $(this).val();
+
+				var i = 0;
+				for (; projects[i];) {
+					if (selected_item == projects[i]) {
+						document.getElementById(projects[i] + 'input').style.display = 'block';
+					} else if (last_selected_item == projects[i]) {
+						document.getElementById(last_selected_item + 'input').style.display = 'none';
+					}
+					i++;
+				}
+
+				last_selected_item = selected_item;
+			});
+		};
 		</script>
 	</head>
-	<body>Current number of white-listed projects: 36
-        <br>Neural Network Multiplier: 115000
-        <br>
-        <br>
-		<b> Katiee's GRC Magnitude/Profit Calculator </b> 
-        <br>
-        <br>
-        <select id="choice">
-            <option>-PROJECTS-</option>
-            <option value="SETI">SETI</option>
-            <option value="ATLAS">ATLAS</option>
-            <option value="COSMO">COSMO</option>
-        </select>
-        <br>
-        <div id="calc">
-            <div id="SETIinput" style="display:none">SETI RAC:
-                <input type='text' id="SETIinput2" />
-                <div id='SETIoutput'></div>
-            </div>
-            <div id="ATLASinput" style="display:none">ATLAS RAC:
-                <input type='text' id="ATLASinput2" />
-                <div id='ATLASoutput'></div>
-            </div>
-            <div id="COSMOinput" style="display:none">COSMO RAC:
-                <input type='text' id="COSMOinput2" />
-                <div id='COSMOoutput'></div>
-            </div>
-        </div>
-        <br>
-        <br> <b>Output:</b> 
-        <br>
-        <div id='projectOutput'></div>
-        <div id='totalOutput'></div>
+    <body>
+		<div id="divMain" style="display: none">
+			Current number of white-listed projects: 36
+			<br>Neural Network Multiplier: 115000
+			<br>
+			<br>
+			<b> Katiee's GRC Magnitude/Profit Calculator </b> 
+			<br>
+			<br>
+			<select id="choice">
+				<option>-PROJECTS-</option>
+				<option value="SETI">SETI</option>
+				<option value="ATLAS">ATLAS</option>
+				<option value="COSMO">COSMO</option>
+			</select>
+			<br>
+			<div id="calc">
+				<div id="SETIinput" style="display:none">SETI RAC:
+					<input type='text' id="SETIinput2" />
+					<div id='SETIoutput'></div>
+				</div>
+				<div id="ATLASinput" style="display:none">ATLAS RAC:
+					<input type='text' id="ATLASinput2" />
+					<div id='ATLASoutput'></div>
+				</div>
+				<div id="COSMOinput" style="display:none">COSMO RAC:
+					<input type='text' id="COSMOinput2" />
+					<div id='COSMOoutput'></div>
+				</div>
+			</div>
+			<br>
+			<br> <b>Output:</b> 
+			<br>
+			<div id='projectOutput'></div>
+			<div id='totalOutput'></div>
+		</div>
     </body>
 </html>
