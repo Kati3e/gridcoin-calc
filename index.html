@@ -12,7 +12,6 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>Katiee's GRC Magnitude/Profit Calculator</title>
 		<style type="text/css">
 			.hidden {
 				display:none;
@@ -36,8 +35,8 @@
 			var nnMultiplier = 115000;
 			
 			// Load arrays with API data
-			var projects = ['Quake Catcher Network','Albert@Home','Volpex@UH','Constellation','RALPH@Home','SRBase','Lattice Project','SETI@home Beta','primaboinca','Van Der Waerden Numbers','Radioactive@Home','vLHCathome','Gridcoin Finance','theSkyNet POGS','SZTAKI Desktop Grid','YAFU','Universe@Home','yoyo@home','Distributed Data Mining','Citizen Science Grid','CAS@home','DENIS@Home','NeuralNetwork','GPUGRID','climateprediction.net','LHC@home','NFS@Home','Leiden Classical','Cosmology@Home','Moo! Wrapper','NumberFields@home','MindModeling@Home','ATLAS@Home','POEM@HOME','WUProp@Home','Find@Home','Bitcoin Utopia','MilkyWay@home','World Community Grid','SAT@home','Einstein@Home','Rosetta@home','BURP','PrimeGrid','malariacontrol.net','Enigma@Home','Collatz Conjecture','Asteroids@home','SETI@home'];
-			var projects_RACs = [70,180,30,120,95,860,1720,780,1760,17.5,130,15333.33,18833.33,160000,15833.33,108666.67,235333.33,101333.33,41166.67,111333.33,8760,562000,0,7751428.57,25000,24833.33,114666.67,26333.33,60333.33,2440000,208666.67,49166.67,11333.33,7418571.43,11333.33,94000,653655410,1820000,384666.67,114000,1725714.29,207333.33,11000,5577142.86,108666.67,202000,17827090,888000,674000];
+			var projects = ['Asteroids@home','ATLAS@Home','Bitcoin Utopia','BURP','CAS@home','Citizen Science Grid','climateprediction.net','Collatz Conjecture','Cosmology@Home','DENIS@Home','Distributed Data Mining','Einstein@Home','Enigma@Home','Find@Home','GPUGRID','Leiden Classical','LHC@home','malariacontrol.net','MilkyWay@home','MindModeling@Home','Moo! Wrapper','NFS@Home','NumberFields@home','POEM@HOME','PrimeGrid','Rosetta@home','SAT@home','SETI@home','SZTAKI Desktop Grid','theSkyNet POGS','Universe@Home','vLHCathome','World Community Grid','WUProp@Home','YAFU','yoyo@home'];
+			var projects_RACs = [888000,11333.33,653655410,11000,8760,111333.33,25000,17827090,60333.33,562000,41166.67,1725714.29,202000,94000,7751428.57,26333.33,24833.33,108666.67,1820000,49166.67,2440000,114666.67,208666.67,7418571.43,5577142.86,207333.33,114000,674000,15833.33,160000,235333.33,15333.33,384666.67,11333.33,108666.67,101333.33];
 			
 			// Create the main body (Load whitelisted projects and RACs from API)
 			// 	For now just loop through the project array
