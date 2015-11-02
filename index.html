@@ -12,6 +12,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<meta charset="utf-8"/>
 		<title>Katiee's GRC Magnitude/Earnings Calculator</title>
 		<style type="text/css">
 			.hidden {
@@ -22,7 +23,7 @@
 			} 
 		</style>
 		
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 
 		<noscript><b>Sorry, your browser does not support JavaScript or you have it disabled, please enable it or upgrade your browser!</b></noscript>
 
@@ -34,11 +35,45 @@
 			var projectsOutput = [];
 			var whitelistNum = 36;
 			var nnMultiplier = 115000;
+			var btcPrice;
+			var grcPrice;
 			
 			// Load arrays with API data
 			var projects = ['Asteroids@home','ATLAS@Home','Bitcoin Utopia','BURP','CAS@home','Citizen Science Grid','climateprediction.net','Collatz Conjecture','Cosmology@Home','DENIS@Home','Distributed Data Mining','Einstein@Home','Enigma@Home','Find@Home','GPUGRID','Leiden Classical','LHC@home','malariacontrol.net','MilkyWay@home','MindModeling@Home','Moo! Wrapper','NFS@Home','NumberFields@home','POEM@HOME','PrimeGrid','Rosetta@home','SAT@home','SETI@home','SZTAKI Desktop Grid','theSkyNet POGS','Universe@Home','vLHCathome','World Community Grid','WUProp@Home','YAFU','yoyo@home'];
 			var projects_RACs = [888000,11333.33,653655410,11000,8760,111333.33,25000,17827090,60333.33,562000,41166.67,1725714.29,202000,94000,7751428.57,26333.33,24833.33,108666.67,1820000,49166.67,2440000,114666.67,208666.67,7418571.43,5577142.86,207333.33,114000,674000,15833.33,160000,235333.33,15333.33,384666.67,11333.33,108666.67,101333.33];
 			
+			// Actual API Requests
+				// Coinbase
+			$.ajax({
+			  url: "http://cors.io/?u=https://api.coinbase.com/v1/prices/spot_rate?currency=USD",
+			  cache: false
+			})
+			.done(function(data) {
+				//console.log( "success" );
+				obj = JSON.parse(data);
+				btcPrice = obj.amount;
+				document.getElementById('btc').innerHTML = obj.amount;
+			})
+			.fail(function(data) {
+				alert(data.statusText);
+				// Add full screen javascript blocking warning here
+			});
+				// Bittrex
+			$.ajax({
+			  url: "http://cors.io/?u=https://bittrex.com/api/v1.1/public/getticker?market=btc-grc",
+			  cache: false
+			})
+			.done(function(data) {
+				//console.log( "success" );
+				obj = JSON.parse(data);
+				grcPrice = obj.result;
+				document.getElementById('grc').innerHTML = "Bid: " + obj.result.Bid.toFixed(8) + " | Ask: " + obj.result.Ask.toFixed(8) + " | Last: " + obj.result.Last.toFixed(8);
+			})
+			.fail(function(data) {
+				alert(data.statusText);
+				// Add full screen javascript blocking warning here
+			});
+
 			// Create the main body (Load whitelisted projects and RACs from API)
 			// 	For now just loop through the project array
 			var htmlSelect = '<select id="choice"><option>-PROJECTS-</option>'
@@ -78,22 +113,33 @@
 					projectsOutput[index + 1] = userMag;
 				}
 				
-				document.getElementById('magLabel').innerHTML = '<b>All Magnitudes:</b>';
+				document.getElementById('magLabel').innerHTML = '<b>All Magnitudes:</b> <font size="2">(with Daily Earnings)';
 
 				var output = '';
 				var total_mag = 0;
 				var i = 0;
+
 				while (projectsOutput.length > i) {
-					output += projectsOutput[i] + ' = ' + projectsOutput[i + 1] + '<br>';
+					projectName = projectsOutput[i];
+					projectMag = projectsOutput[i+1];
+					projectGRC = (projectMag*0.35).toFixed(8);
+					projectBTC = (projectGRC*grcPrice.Last).toFixed(8);
+					projectUSD = (projectBTC*btcPrice).toFixed(2);
+					output +=  projectName + ' = ' + projectMag + ' (GRC: ' + projectGRC + ' | BTC: ' + projectBTC + ' | USD: $' + projectUSD + ')<br>';
 					total_mag += parseFloat(projectsOutput[i + 1]);
 					i = i + 2;
 				}
 
 				output = output + '<br><br><b>Total Mag:</b> ' + total_mag.toFixed(2); // I have no idea why we need to round here..
 				
-				var grc = '<br><b>Daily Earnings:</b> ' + (total_mag.toFixed(2) * 0.35).toFixed(8) + ' GRC';
+				var coins = (total_mag.toFixed(2) * 0.35).toFixed(8);
+				var grc = '<br><b>Daily Earnings:</b> ' + coins + ' GRC';
+				
+				var grcToBtc = (coins * grcPrice.Last).toFixed(8)
+				var btc = '<br><b>Daily Earnings (BTC):</b> ' + grcToBtc + ' BTC';
+				var usd = '<br><b>Daily Earnings (USD):</b> $' + (grcToBtc * btcPrice).toFixed(2) + ' USD';
 
-				document.getElementById('projectOutput').innerHTML = output + grc;
+				document.getElementById('projectOutput').innerHTML = output + grc + btc + usd;
 			});
 
 			$('#choice').change(function () {
@@ -119,6 +165,9 @@
 			<h1> Katiee's GRC Magnitude/Earnings Calculator </h1> 
 			<font size="2"><i>* Data last updated: November 01, 2015</i></font>
 			<br>
+			<br>
+			<br><b>BTC:</b> $<span title="Data from CoinBase.com" id="btc"></span> <font size='2'><i>(* from CoinBase.com)</i></font>
+			<br><b>GRC:</b> <span title="Data from BitTrex.com" id="grc"></span> <font size='2'><i>(* from BitTrex.com)</i></font><br>
 			<br>
 			Current number of white-listed projects: 36
 			<br>
