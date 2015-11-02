@@ -1,9 +1,24 @@
+<!-- 
+	To-do:
+		Add comments throughout code
+		Add API to get current project's RACs automatically
+		Add CPID input and call an API to get user's RACs
+		Make pretty
+		Add ads
+		...
+		Profit?
+-->
+
+<!DOCTYPE html>
 <html>
 	<head>
 		<style type="text/css">
 			.hidden {
 				display:none;
 			}
+			* {
+				font-family: Verdana, Arial, sans-serif;
+			} 
 		</style>
 		
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
@@ -13,20 +28,47 @@
 		<script type="text/javascript">
 		window.onload=function(){
 			document.getElementById("divMain").style.display = "block";
-			var projects = ["ATLAS", "SETI", "COSMO"];
 			var last_selected_item = "";
 			var selected_item;
 			var projectsOutput = [];
 			var whitelistNum = 36;
 			var nnMultiplier = 115000;
-
-			// Just for testing
-			var projectRAC = 11166.67;
+			
+			// Load arrays with API data
+			var projects = ['Quake Catcher Network','Albert@Home','Volpex@UH','Constellation','RALPH@Home','SRBase','Lattice Project','SETI@home Beta','primaboinca','Van Der Waerden Numbers','Radioactive@Home','vLHCathome','Gridcoin Finance','theSkyNet POGS','SZTAKI Desktop Grid','YAFU','Universe@Home','yoyo@home','Distributed Data Mining','Citizen Science Grid','CAS@home','DENIS@Home','NeuralNetwork','GPUGRID','climateprediction.net','LHC@home','NFS@Home','Leiden Classical','Cosmology@Home','Moo! Wrapper','NumberFields@home','MindModeling@Home','ATLAS@Home','POEM@HOME','WUProp@Home','Find@Home','Bitcoin Utopia','MilkyWay@home','World Community Grid','SAT@home','Einstein@Home','Rosetta@home','BURP','PrimeGrid','malariacontrol.net','Enigma@Home','Collatz Conjecture','Asteroids@home','SETI@home'];
+			var projects_RACs = [70,180,30,120,95,860,1720,780,1760,17.5,130,15333.33,18833.33,160000,15833.33,108666.67,235333.33,101333.33,41166.67,111333.33,8760,562000,0,7751428.57,25000,24833.33,114666.67,26333.33,60333.33,2440000,208666.67,49166.67,11333.33,7418571.43,11333.33,94000,653655410,1820000,384666.67,114000,1725714.29,207333.33,11000,5577142.86,108666.67,202000,17827090,888000,674000];
+			
+			// Create the main body (Load whitelisted projects and RACs from API)
+			// 	For now just loop through the project array
+			var htmlSelect = '<select id="choice"><option>-PROJECTS-</option>'
+			var htmlDivs = "";
+			var i = 0;
+			for (; projects[i];) {
+				htmlSelect += '<option value="' + projects[i] + '">' + projects[i] + '</option>';
+				htmlDivs += '<div id="' + projects[i] + 'div" style="display:none">';
+				htmlDivs += projects[i] + ' RAC: <input type="text" id="' + projects[i] + '_userRAC"/><br>';
+				htmlDivs += projects[i] + ' Team Total RAC: <input type="text" id="' + projects[i] + '_teamRAC"/>';
+				htmlDivs += '<div id="' + projects[i] + 'output"></div></div>';
+				i++;
+			}
+			
+			document.getElementById('dropdown').innerHTML += htmlSelect + '</select>';
+			document.getElementById('calc').innerHTML += htmlDivs;
+			// End
+			
+			// Load up the text fields with project RACs
+			var i = 0;
+			for (; projects[i];) {
+				document.getElementById(projects[i] + '_teamRAC').value = projects_RACs[i];
+				i++;
+			}
+			// End
 
 			$('#calc').keyup(function (e) {
-				var userRAC = document.getElementById(selected_item + 'input2').value;
-				var userMag = (((parseFloat(userRAC) / (parseFloat(projectRAC) + 0.01)) / (parseFloat(whitelistNum) + 0.01)) * parseFloat(nnMultiplier)).toFixed(2);
-				document.getElementById(selected_item + 'output').innerHTML = selected_item + ' Mag: ' + userMag;
+				var userRAC = document.getElementById(selected_item + '_userRAC').value;
+				var teamRAC = document.getElementById(selected_item + '_teamRAC').value;
+				var userMag = (((parseFloat(userRAC) / (parseFloat(teamRAC) + 0.01)) / (parseFloat(whitelistNum) + 0.01)) * parseFloat(nnMultiplier)).toFixed(2);
+				document.getElementById(selected_item + 'output').innerHTML = '<br><b>' + selected_item + ' Magnitude:</b> ' + userMag;
 
 				var index = projectsOutput.indexOf(selected_item);
 				if (index == -1) {
@@ -34,6 +76,8 @@
 				} else {
 					projectsOutput[index + 1] = userMag;
 				}
+				
+				document.getElementById('magLabel').innerHTML = '<b>All Magnitudes:</b>';
 
 				var output = '';
 				var total_mag = 0;
@@ -44,9 +88,9 @@
 					i = i + 2;
 				}
 
-				output = output + '<br><br>Total Mag: ' + total_mag.toFixed(2); // I have no idea why we need to round here..
+				output = output + '<br><br><b>Total Mag:</b> ' + total_mag.toFixed(2); // I have no idea why we need to round here..
 				
-				var grc = '<br>Daily GRC Earnings: ' + (total_mag.toFixed(2) * 0.35).toFixed(8)
+				var grc = '<br><b>Daily Earnings:</b> ' + (total_mag.toFixed(2) * 0.35).toFixed(8) + ' GRC';
 
 				document.getElementById('projectOutput').innerHTML = output + grc;
 			});
@@ -57,9 +101,9 @@
 				var i = 0;
 				for (; projects[i];) {
 					if (selected_item == projects[i]) {
-						document.getElementById(projects[i] + 'input').style.display = 'block';
+						document.getElementById(projects[i] + 'div').style.display = 'block';
 					} else if (last_selected_item == projects[i]) {
-						document.getElementById(last_selected_item + 'input').style.display = 'none';
+						document.getElementById(last_selected_item + 'div').style.display = 'none';
 					}
 					i++;
 				}
@@ -69,41 +113,24 @@
 		};
 		</script>
 	</head>
-    	<body>
+    <body>
 		<div id="divMain" style="display: none">
+			<h1> Katiee's GRC Magnitude/Profit Calculator </h1> 
+			<font size="2"><i>* Data last updated: November 01, 2015</i></font>
+			<br>
+			<br>
 			Current number of white-listed projects: 36
-			<br>Neural Network Multiplier: 115000
+			<br>
+			Neural Network Multiplier: 115000
 			<br>
 			<br>
-			<b> Katiee's GRC Magnitude/Profit Calculator </b> 
+			<div id="dropdown"></div>
+			<div id="calc"></div>
 			<br>
-			<br>
-			<select id="choice">
-				<option>-PROJECTS-</option>
-				<option value="SETI">SETI</option>
-				<option value="ATLAS">ATLAS</option>
-				<option value="COSMO">COSMO</option>
-			</select>
-			<br>
-			<div id="calc">
-				<div id="SETIinput" style="display:none">SETI RAC:
-					<input type='text' id="SETIinput2" />
-					<div id='SETIoutput'></div>
-				</div>
-				<div id="ATLASinput" style="display:none">ATLAS RAC:
-					<input type='text' id="ATLASinput2" />
-					<div id='ATLASoutput'></div>
-				</div>
-				<div id="COSMOinput" style="display:none">COSMO RAC:
-					<input type='text' id="COSMOinput2" />
-					<div id='COSMOoutput'></div>
-				</div>
-			</div>
-			<br>
-			<br> <b>Output:</b> 
-			<br>
+			<br> 
+			<div id='magLabel'></div> 
 			<div id='projectOutput'></div>
 			<div id='totalOutput'></div>
 		</div>
-	</body>
+    </body>
 </html>
