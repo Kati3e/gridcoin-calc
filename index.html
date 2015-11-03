@@ -1,5 +1,11 @@
 <!-- 
 	To-do:
+		Edit more fields (prices, total mag)
+		Add Reset Buttons (Reset all, Reset Project RAC, Reset All Project RACs)
+		Show the math behind it so newbies don't feel so lost
+		Add an FAQ
+		Charts/Graphs
+		Add user's RAC to the Project's RAC (checkbox to enable/disable?)
 		Add comments throughout code
 		Add API to get current project's RACs automatically
 		Add CPID input and call an API to get user's RACs
@@ -29,7 +35,9 @@
 
 		<script type="text/javascript">
 		window.onload=function(){
-			document.getElementById("divMain").style.display = "block";
+			document.getElementById("divMain").style.display = "block"; // Unhide page if JavaScript is enabled.
+			
+			// Global Variables
 			var last_selected_item = "";
 			var selected_item;
 			var projectsOutput = [];
@@ -44,35 +52,35 @@
 			
 			// Actual API Requests
 				// Coinbase
-			$.ajax({
-			  url: "http://cors.io/?u=https://api.coinbase.com/v1/prices/spot_rate?currency=USD",
-			  cache: false
-			})
-			.done(function(data) {
-				//console.log( "success" );
-				obj = JSON.parse(data);
-				btcPrice = obj.amount;
-				document.getElementById('btc').innerHTML = obj.amount;
-			})
-			.fail(function(data) {
-				alert(data.statusText);
-				// Add full screen javascript blocking warning here
-			});
+				$.ajax({
+				  url: "http://cors.io/?u=https://api.coinbase.com/v1/prices/spot_rate?currency=USD",
+				  cache: false
+				})
+				.done(function(data) {
+					console.log("(Done) CoinBase API Returned: " + JSON.stringify(data));
+					obj = JSON.parse(data);
+					btcPrice = obj.amount;
+					document.getElementById('btc').innerHTML = obj.amount;
+				})
+				.fail(function(data) {
+					alert("CoinBase API call failed, no BTC price will be displayed.");
+					// Add full screen javascript blocking warning here
+				});
 				// Bittrex
-			$.ajax({
-			  url: "http://cors.io/?u=https://bittrex.com/api/v1.1/public/getticker?market=btc-grc",
-			  cache: false
-			})
-			.done(function(data) {
-				//console.log( "success" );
-				obj = JSON.parse(data);
-				grcPrice = obj.result;
-				document.getElementById('grc').innerHTML = "Bid: " + obj.result.Bid.toFixed(8) + " | Ask: " + obj.result.Ask.toFixed(8) + " | Last: " + obj.result.Last.toFixed(8);
-			})
-			.fail(function(data) {
-				alert(data.statusText);
-				// Add full screen javascript blocking warning here
-			});
+				$.ajax({
+				  url: "http://cors.io/?u=https://bittrex.com/api/v1.1/public/getticker?market=btc-grc",
+				  cache: false
+				})
+				.done(function(data) {
+					console.log("(Done) BitTrex API Returned: " + JSON.stringify(data));
+					obj = JSON.parse(data);
+					grcPrice = obj.result;
+					document.getElementById('grc').innerHTML = "Bid: " + obj.result.Bid.toFixed(8) + " | Ask: " + obj.result.Ask.toFixed(8) + " | Last: " + obj.result.Last.toFixed(8);
+				})
+				.fail(function(data) {
+					alert("BitTrex API call failed, no GRC prices will be displayed.");
+					// Add full screen javascript blocking warning here
+				});
 
 			// Create the main body (Load whitelisted projects and RACs from API)
 			// 	For now just loop through the project array
@@ -100,12 +108,14 @@
 			}
 			// End
 
-			$('#calc').keyup(function (e) {
+			// RAC and Team Total RAC Input box input change event
+			document.getElementById('calc').oninput = function (e) {
 				var userRAC = document.getElementById(selected_item + '_userRAC').value;
 				var teamRAC = document.getElementById(selected_item + '_teamRAC').value;
-				var userMag = (((parseFloat(userRAC) / (parseFloat(teamRAC) + 0.01)) / (parseFloat(whitelistNum) + 0.01)) * parseFloat(nnMultiplier)).toFixed(2);
+				var userMag = getMag(userRAC, teamRAC);
 				document.getElementById(selected_item + 'output').innerHTML = '<br><b>' + selected_item + ' Magnitude:</b> ' + userMag;
-
+				
+				// Update Mags from Input boxes
 				var index = projectsOutput.indexOf(selected_item);
 				if (index == -1) {
 					projectsOutput.push(selected_item, userMag);
@@ -113,6 +123,17 @@
 					projectsOutput[index + 1] = userMag;
 				}
 				
+				// Update the output section
+				updateOutput();
+			};
+			
+			// Returns magnitude based on wallet source code formula
+			function getMag(userRAC, teamRAC) {
+				return (((parseFloat(userRAC) / (parseFloat(teamRAC) + 0.01)) / (parseFloat(whitelistNum) + 0.01)) * parseFloat(nnMultiplier)).toFixed(2);
+			};
+			
+			// Updates the output section
+			function updateOutput() {
 				document.getElementById('magLabel').innerHTML = '<b>All Magnitudes:</b> <font size="2">(with Daily Earnings)';
 
 				var output = '';
@@ -140,8 +161,21 @@
 				var usd = '<br><b>Daily Earnings (USD):</b> $' + (grcToBtc * btcPrice).toFixed(2) + ' USD';
 
 				document.getElementById('projectOutput').innerHTML = output + grc + btc + usd;
-			});
+			};
+			
+			// CPID Input box input change event
+			document.getElementById('cpidInput').oninput = function (e) {
+				var userCPID = this.value;
+				if (userCPID.length == 32) {
+					console.log("valid CPID: " + userCPID);
+					// Get stats from API and push to projectOutput array then call updateOutput()
+						// Also add user's RACs to input boxes for editing
+					
+					
+				}
+			};
 
+			// Project selection box change event
 			$('#choice').change(function () {
 				selected_item = $(this).val();
 
@@ -163,6 +197,9 @@
     <body>
 		<div id="divMain" style="display: none">
 			<h1> Katiee's GRC Magnitude/Earnings Calculator </h1> 
+			Donate<br>
+				&emsp;GRC: SKktJjU4KK63Z2SDMtHnfvQkMErZ3X2YkL<br>
+				&emsp;BTC: 1Q3gfds62VqqHwd7aXGQK7CHUeqDSwteVk<br>
 			<a href="https://cryptocointalk.com/topic/42631-gridcoin-magnitudeearnings-calculator/">Leave comments, ideas and bug reports here</a>
 			<br>
 			<br>
@@ -177,7 +214,7 @@
 			Neural Network Multiplier: 115000
 			<br>
 			<br>
-			<div id="dropdown"></div>
+			<span id="dropdown"></span> OR <span id="cpid"><input type="text" id="cpidInput" placeholder="Enter your CPID (Not finshed yet)" maxlength="32" size="33"/></span>
 			<div id="calc"></div>
 			<br>
 			<br> 
