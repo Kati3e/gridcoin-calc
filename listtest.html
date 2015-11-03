@@ -1,0 +1,247 @@
+<!-- 
+	To-do:
+		Edit more fields (prices, total mag)
+		Add Reset Buttons (Reset all, Reset Project RAC, Reset All Project RACs)
+		Show the math behind it so newbies don't feel so lost
+		Add an FAQ
+		Charts/Graphs
+		Add user's RAC to the Project's RAC (checkbox to enable/disable?)
+		Add comments throughout code
+		Add API to get current project's RACs automatically
+		Add CPID input and call an API to get user's RACs
+		Make pretty
+		Add ads
+		...
+		Profit?
+-->
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8"/>
+		<title>Katiee's GRC Magnitude/Earnings Calculator</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css" integrity="sha384-aUGj/X2zp5rLCbBxumKTCw2Z50WgIr1vs/PFN4praOTvYXWlVyh2UtNUU0KAUhAX" crossorigin="anonymous">
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
+
+		<style type="text/css">
+			.hidden {
+				display:none;
+			}
+			* {
+				font-family: Verdana, Arial, sans-serif;
+			} 
+		</style>
+		
+		<noscript><b>Sorry, your browser does not support JavaScript or you have it disabled, please enable it or upgrade your browser!</b></noscript>
+
+		<script type="text/javascript">
+		window.onload=function(){
+			document.getElementById("divMain").style.display = "block"; // Unhide page if JavaScript is enabled.
+			
+			$('[data-toggle="tooltip"]').tooltip();
+			
+			// Global Variables
+			var last_selected_item = "";
+			var selected_item;
+			var projectsOutput = [];
+			var whitelistNum = 36;
+			var nnMultiplier = 115000;
+			var btcPrice;
+			var grcPrice;
+			
+			// Load arrays with API data
+			var projects = ['Asteroids@home','ATLAS@Home','Bitcoin Utopia','BURP','CAS@home','Citizen Science Grid','climateprediction.net','Collatz Conjecture','Cosmology@Home','DENIS@Home','Distributed Data Mining','Einstein@Home','Enigma@Home','Find@Home','GPUGRID','Leiden Classical','LHC@home','malariacontrol.net','MilkyWay@home','MindModeling@Home','Moo! Wrapper','NFS@Home','NumberFields@home','POEM@HOME','PrimeGrid','Rosetta@home','SAT@home','SETI@home','SZTAKI Desktop Grid','theSkyNet POGS','Universe@Home','vLHCathome','World Community Grid','WUProp@Home','YAFU','yoyo@home'];
+			var projects_RACs = [888000,11333.33,653655410,11000,8760,111333.33,25000,17827090,60333.33,562000,41166.67,1725714.29,202000,94000,7751428.57,26333.33,24833.33,108666.67,1820000,49166.67,2440000,114666.67,208666.67,7418571.43,5577142.86,207333.33,114000,674000,15833.33,160000,235333.33,15333.33,384666.67,11333.33,108666.67,101333.33];
+			
+			// Actual API Requests
+				// Coinbase
+				function ajaxCoinbase() {
+					return $.ajax({
+					  url: "http://cors.io/?u=https://api.coinbase.com/v1/prices/spot_rate?currency=USD",
+					  cache: false
+					})
+						.done(function(data) {
+							console.log("(Done) CoinBase API Returned: " + JSON.stringify(data));
+							obj = JSON.parse(data);
+							btcPrice = obj.amount;
+							document.getElementById('btc').innerHTML = obj.amount;
+							
+						})
+						.fail(function(data) {
+							alert("CoinBase API call failed, no BTC price will be displayed.");
+							// Add full screen javascript blocking warning here
+						});
+				};
+				
+				// Bittrex
+				function ajaxBittrex() {
+					return $.ajax({
+					  url: "http://cors.io/?u=https://bittrex.com/api/v1.1/public/getticker?market=btc-grc",
+					  cache: false
+					})
+						.done(function(data) {
+							console.log("(Done) BitTrex API Returned: " + JSON.stringify(data));
+							obj = JSON.parse(data);
+							grcPrice = obj.result;
+							document.getElementById('grc').innerHTML = "Bid: " + obj.result.Bid.toFixed(8) + " | Ask: " + obj.result.Ask.toFixed(8) + " | Last: " + obj.result.Last.toFixed(8);
+
+						})
+						.fail(function(data) {
+							alert("BitTrex API call failed, no GRC prices will be displayed.");
+							// Add full screen javascript blocking warning here
+						});
+				};
+					
+				$.when(ajaxCoinbase(), ajaxBittrex()).done(function(aCB, aBT){
+					updateTable();
+				});
+
+			function updateTable() {
+				var tableRow = "";
+				var tableRows = "";
+
+				
+				for (i = 0; i < projects.length; i++) {
+					tableRow = "";
+					userRAC = 5000;
+					projectMag = getMag(userRAC, projects_RACs[i])
+					projectGRC = (projectMag*0.35).toFixed(8);
+					projectBTC = (projectGRC*grcPrice.Last).toFixed(8);
+					projectUSD = (projectBTC*btcPrice).toFixed(2);
+		
+					// Row start
+					tableRow += '<tr style="font-size: 10pt;" class="">';
+					
+					// Position
+					tableRow += '<td style="width:24px;">';
+					tableRow += '<div style="font-weight:800; text-align:center;">' + i + '</div></td>';
+					
+					// Project Name/Link
+					tableRow += '<td><div style="position: relative; width: 100%;"><div style="float: left; min-width: 160px;">';
+					tableRow += '<a href="' + '#' + '" class="link" style=""><b>' + projects[i] + '</b></a>';
+					tableRow += '</div></div></td>';
+					
+					// Project Team RAC
+					tableRow += '<td><div style="position: relative; width: 100%;"><div style="float: left; min-width: 160px;">';
+					tableRow += projects_RACs[i];
+					tableRow += '</div></div></td>';
+					
+					// User RAC
+					tableRow += '<td><div style="position: relative; width: 100%;"><div style="float: left; min-width: 160px;">';
+					tableRow += userRAC;
+					tableRow += '</div></div></td>';
+					
+					// User Magnitude
+					tableRow += '<td><div style="position: relative; width: 100%;"><div style="float: left; min-width: 160px;">';
+					tableRow += projectMag;
+					tableRow += '</div></div></td>';
+					
+					// Gridcoin
+					tableRow += '<td><div style="position: relative; width: 100%;"><div style="float: left; min-width: 160px;">';
+					tableRow += projectGRC * 0.35;
+					tableRow += '</div></div></td>';
+					
+					// Bitcoins
+					tableRow += '<td><div style="position: relative; width: 100%;"><div style="float: left; min-width: 160px;">';
+					tableRow += projectBTC * 0.35;
+					tableRow += '</div></div></td>';
+					
+					// USD
+					tableRow += '<td><div style="position: relative; width: 100%;"><div style="float: left; min-width: 160px;">';
+					tableRow += projectUSD * 0.35;
+					tableRow += '</div></div></td></tr>';
+
+					tableRows += tableRow;
+				}
+				document.getElementById('mainRows').innerHTML = tableRows
+			}
+			
+			
+			// End
+			
+			// CPID Input box input change event
+			document.getElementById('cpidInput').oninput = function (e) {
+				var userCPID = this.value;
+				if (userCPID.length == 32) {
+					console.log("valid CPID: " + userCPID);
+					// Get stats from API and push to projectOutput array then call updateOutput()
+						// Also add user's RACs to input boxes for editing
+
+						updateInputs();
+				}
+			};
+
+			
+			// Returns magnitude based on wallet source code formula
+			function getMag(userRAC, teamRAC) {
+				return (((parseFloat(userRAC) / (parseFloat(teamRAC) + 0.01)) / (parseFloat(whitelistNum) + 0.01)) * parseFloat(nnMultiplier)).toFixed(2);
+			};
+		};
+		</script>
+	</head>
+    <body>
+		<div id="divMain" style="display: none">
+			<h1> Katiee's GRC Magnitude/Earnings Calculator </h1> 
+			<h3> with WUProp hardware results </h3> 
+			Donate<br>
+				&emsp;GRC: SKktJjU4KK63Z2SDMtHnfvQkMErZ3X2YkL<br>
+				&emsp;BTC: 1Q3gfds62VqqHwd7aXGQK7CHUeqDSwteVk<br>
+			<a href="https://cryptocointalk.com/topic/42631-gridcoin-magnitudeearnings-calculator/">Leave comments, ideas and bug reports here</a>
+			<br>
+			_________________<br>
+			<br>
+			<br><b>BTC:</b> $<span id="btc"></span>
+			<i class="fa fa-info-circle" data-toggle="tooltip" data-placement="right" title="Price from CoinBase.com"></i>
+			<br><b>GRC:</b> <span id="grc"></span>
+			<i class="fa fa-info-circle" data-toggle="tooltip" data-placement="right" title="Price from BitTrex.com"></i>
+			<br><br><br>
+			Current number of white-listed projects: 36
+			<br>
+			Neural Network Multiplier: 115000
+			<br><br><br>
+			<span id="cpid"><input type="text" id="cpidInput" placeholder="Enter your CPID (Not finshed yet)" maxlength="32" size="33"/></span>
+			<br><br><br>
+			
+			<font size="2"><i>* Project RACs last updated: November 01, 2015</i></font><br>
+			<table class="table table-bordered table-striped table-hover" id="tblProjects">
+				<thead>
+					<tr>
+						<th class="researching" colspan="2">
+							Projects
+							 <br /><span class="muted" style="font-size: 7.5pt;">Current Profitability Position</span>
+						</th>
+						<th class="researching" colspan="1">
+							Team RAC
+							 <br /><span class="muted" style="font-size: 7.5pt;">Current Team Total RAC</span>
+						</th>
+						<th class="researching" colspan="1">
+							Your RAC
+							 <br /><span class="muted" style="font-size: 7.5pt;">Estimated RAC from Netsoft</span>
+						</th>
+						<th class="researching" colspan="1">
+							Magnitude
+							 <br /><span class="muted" style="font-size: 7.5pt;">Estimated Project Magnitude</span>
+						</th>
+						<th class="researching" colspan="1">
+							Gridcoins
+							 <br /><span class="muted" style="font-size: 7.5pt;">(per day)</span>
+						</th>
+						<th class="researching" colspan="1">
+							Bitcoins
+							 <br /><span class="muted" style="font-size: 7.5pt;">(per day)</span>
+						</th>
+						<th class="researching" colspan="1">
+							USD
+							 <br /><span class="muted" style="font-size: 7.5pt;">(per day)</span>
+						</th>
+					</tr>
+				</thead>
+				<tbody id="mainRows">
+
+				<tbody>
+		</div>
+    </body>
+</html>
