@@ -1,5 +1,7 @@
 <!-- 
 	To-do:
+		Reset header sort icons
+		Detect enter on CPID field
 		Checkbox doesnt remove when entering cpid
 		Edit more fields (prices, total mag)
 		Add Reset Buttons (Reset all, Reset Project RAC, Reset All Project RACs)
@@ -37,9 +39,9 @@
 				font-family: Verdana, Arial, sans-serif;
 			} 
 			
+			table.tablesorter thead tr th.header:before,
 			table.tablesorter thead tr th.headerSortUp:before,
-			table.tablesorter thead tr th.headerSortDown:before,
-			table.tablesorter thead tr th.header:before {
+			table.tablesorter thead tr th.headerSortDown:before {
 			  font-family: FontAwesome;
 			}
 			table.tablesorter thead tr th.header:before {
@@ -106,6 +108,7 @@
 			var projects = ['Asteroids@home','ATLAS@Home','Bitcoin Utopia','BURP','CAS@home','Citizen Science Grid','climateprediction.net','Collatz Conjecture','Cosmology@Home','DENIS@Home','Distributed Data Mining','Einstein@Home','Enigma@Home','Find@Home','GPUGRID','Leiden Classical','LHC@home','malariacontrol.net','MilkyWay@home','MindModeling@Home','Moo! Wrapper','NFS@Home','NumberFields@home','POEM@HOME','PrimeGrid','Rosetta@home','SAT@home','SETI@home','SZTAKI Desktop Grid','theSkyNet POGS','Universe@Home','vLHCathome','World Community Grid','WUProp@Home','YAFU','yoyo@home'];
 			var projects_RACs = [888000,11333.33,653655410,11000,8760,111333.33,25000,17827090,60333.33,562000,41166.67,1725714.29,202000,94000,7751428.57,26333.33,24833.33,108666.67,1820000,49166.67,2440000,114666.67,208666.67,7418571.43,5577142.86,207333.33,114000,674000,15833.33,160000,235333.33,15333.33,384666.67,11333.33,108666.67,101333.33];
 			
+			
 			// Actual API Requests
 				// Coinbase
 				function ajaxCoinbase() {
@@ -147,15 +150,18 @@
 					
 				$.when(ajaxCoinbase(), ajaxBittrex()).done(function(aCB, aBT){
 					updateTable();
+					$('#tblProjects').tablesorter({sortList:[[0,0]]}); 
 				});
 
 
 			function updateTable() {
+				$("#tblProjects").trigger("sorton", [[[0,0]]]); // temp fix i guess... ugh
 				var tableRows = "";
 				var teamRacTotal = 0, userRacTotal = 0, magTotal = 0, grcTotal = 0, btcTotal = 0, usdTotal = 0;
 
 
 				for (i = 0; i < projects.length; i++) {
+					//console.log(projects);
 					tableRow = "";
 					var userRAC = 0, projectMag = 0, projectGRC = 0, projectBTC = 0, projectUSD = 0;
 
@@ -236,9 +242,20 @@
 				document.getElementById('usdTotal_td').innerHTML = usdTotal.toFixed(2) + " / " + (usdTotal*30).toFixed(2);
 				
 				document.getElementById('mainRows').innerHTML = tableRows;
-				$('#tblProjects').tablesorter(); 
+				//console.log(document.getElementById('mainRows').innerHTML);
+				
+
+				// Table data was just dynamically updated
+				$('#tblProjects')
+				  .trigger("update");
+			/*	make this work damnit!
+				var sorting = [[0,0]];
+				setTimeout(function () {
+					$("#tblProjects").trigger("sorton", [sorting]);
+				}, 100);  */
+					
+
 			}
-			
 			
 			// End
 			$("#showProjectsCheckbox").change(function() {
@@ -291,7 +308,10 @@
 					projectRAC = projectsList[i].getElementsByTagName("expavg_credit")[0].textContent;
 					userProjects.push([projectName, projectRAC]);
 				}
+
 				updateTable();
+
+				
 				/*
 				if (document.getElementById("showProjectsCheckbox").checked == false) {
 					document.getElementById("showProjectsCheckbox").click();
@@ -374,7 +394,7 @@
 						</th>
 						<th class="researching" colspan="1" style="vertical-align:top">
 							USD
-							 <br /><span class="muted" style="font-size: 7.5pt;">(per day) / (30 days)</span>
+							 <br /><span class="muted" style="font-size: 7.5pt;">(1 day) / (30 days)</span>
 						</th>
 					</tr>
 				</thead>
